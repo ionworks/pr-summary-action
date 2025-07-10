@@ -1,0 +1,16 @@
+name: PR Summary
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  summary:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: your-org/pr-summary-action@v1
+        with:
+          # Optional: Use GPT-4 for better summaries
+          model: "gpt-3.5-turbo"
+          # Optional: Override default Slack channel
+          slack_channel: ""
