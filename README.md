@@ -37,7 +37,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: ionworks/pr-summary-action@v1.3
+      - uses: ionworks/pr-summary-action@v1.4
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
@@ -48,7 +48,7 @@ jobs:
 ### Basic Usage
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.3
+- uses: ionworks/pr-summary-action@v1.4
   with:
     openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
@@ -57,7 +57,7 @@ jobs:
 ### With GPT-4
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.3
+- uses: ionworks/pr-summary-action@v1.4
   with:
     openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
@@ -69,7 +69,7 @@ jobs:
 To post to a different channel, create a separate webhook for that channel in Slack and use it:
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.3
+- uses: ionworks/pr-summary-action@v1.4
   with:
     openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     slack_webhook: ${{ secrets.SLACK_WEBHOOK_FRONTEND }} # Different webhook for #frontend
@@ -78,7 +78,7 @@ To post to a different channel, create a separate webhook for that channel in Sl
 ### Full Configuration
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.3
+- uses: ionworks/pr-summary-action@v1.4
   with:
     openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
@@ -88,16 +88,18 @@ To post to a different channel, create a separate webhook for that channel in Sl
 ## How It Works
 
 1. **Triggers**: When a PR is merged
-2. **Analyzes**: Gets PR title, description, and diff
-3. **Summarizes**: Uses OpenAI to generate technical and marketing summaries
-4. **Posts**: Sends formatted message to Slack with PR link
+2. **Analyzes**: Gets PR title, description, diff, and author information
+3. **Summarizes**: Uses OpenAI to generate technical and marketing summaries with author context
+4. **Posts**: Sends formatted message to Slack with PR author, branch info, and link
 
 ## Features
 
 - ✅ **Secure credential management** - Uses GitHub secrets for secure storage
 - ✅ **One-line setup** - Works across all repos instantly
-- ✅ **AI-powered** - Technical and marketing summaries
-- ✅ **Slack integration** - Rich formatted messages with buttons
+- ✅ **AI-powered** - Technical and marketing summaries with author context
+- ✅ **Rich Slack integration** - Formatted messages with PR author, branch info, and buttons
+- ✅ **Comprehensive debugging** - Full GitHub event logging for troubleshooting
+- ✅ **Author information** - Includes PR author and merge details in summaries
 - ✅ **Customizable** - Choose AI model and different webhooks for different channels
 
 ## Security
