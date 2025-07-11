@@ -161,9 +161,22 @@ INSTRUCTIONS:
 JSON Response:"""
 
     try:
-        if config.enable_debugging:
-            logger.info(f"Making OpenAI API call with model: {config.openai_model}")
-            logger.info(f"Prompt length: {len(prompt)} characters")
+        # Always log key request details for debugging
+        logger.info(f"Making OpenAI API call with model: {config.openai_model}")
+        logger.info(f"Prompt length: {len(prompt)} characters")
+        logger.info(
+            f"Diff length: {len(diff)} characters (truncated to {config.max_diff_length})"
+        )
+
+        # Log the API call parameters
+        api_params = {
+            "model": config.openai_model,
+            "max_tokens": config.max_tokens,
+            "temperature": config.temperature,
+            "messages_count": 2,
+            "user_message_length": len(prompt),
+        }
+        logger.info(f"OpenAI API parameters: {api_params}")
 
         response = openai_client.chat.completions.create(
             model=config.openai_model,
@@ -178,57 +191,77 @@ JSON Response:"""
             temperature=config.temperature,
         )
 
-        if config.enable_debugging:
-            logger.info(f"OpenAI API call successful")
-            logger.info(f"Response object type: {type(response)}")
-            logger.info(f"Response has choices: {hasattr(response, 'choices')}")
+        # Always log API response details for debugging
+        logger.info(f"OpenAI API call successful")
+        logger.info(f"Response object type: {type(response)}")
+        logger.info(f"Response has choices: {hasattr(response, 'choices')}")
 
         if not hasattr(response, "choices") or not response.choices:
+            logger.error("OpenAI response has no choices")
             raise ValueError("OpenAI response has no choices")
 
-        if config.enable_debugging:
-            logger.info(f"Number of choices: {len(response.choices)}")
+        logger.info(f"Number of choices: {len(response.choices)}")
+
+        # Log additional response metadata if available
+        if hasattr(response, "usage"):
+            logger.info(f"Token usage: {response.usage}")
+        if hasattr(response, "id"):
+            logger.info(f"Response ID: {response.id}")
 
         first_choice = response.choices[0]
-        if config.enable_debugging:
-            logger.info(f"First choice type: {type(first_choice)}")
-            logger.info(f"First choice has message: {hasattr(first_choice, 'message')}")
+        logger.info(f"First choice type: {type(first_choice)}")
+        logger.info(f"First choice has message: {hasattr(first_choice, 'message')}")
+
+        # Log finish reason to understand why the response ended
+        if hasattr(first_choice, "finish_reason"):
+            logger.info(f"Finish reason: {first_choice.finish_reason}")
+        else:
+            logger.warning("No finish reason available in response")
 
         if not hasattr(first_choice, "message"):
             raise ValueError("OpenAI response choice has no message")
 
         message = first_choice.message
-        if config.enable_debugging:
-            logger.info(f"Message type: {type(message)}")
-            logger.info(f"Message has content: {hasattr(message, 'content')}")
+        logger.info(f"Message type: {type(message)}")
+        logger.info(f"Message has content: {hasattr(message, 'content')}")
+
+        # Log message role for completeness
+        if hasattr(message, "role"):
+            logger.info(f"Message role: {message.role}")
+        else:
+            logger.warning("No role available in message")
 
         response_content = message.content
-        if config.enable_debugging:
-            logger.info(f"Raw response content: {repr(response_content)}")
+        # Always log the raw response content for debugging
+        logger.info(f"Raw OpenAI response content: {repr(response_content)}")
+        logger.info(f"Response content type: {type(response_content)}")
+        logger.info(
+            f"Response content length: {len(response_content) if response_content else 0}"
+        )
 
         if not response_content:
+            logger.error("OpenAI returned empty response content")
             raise ValueError("Empty response content from OpenAI")
 
         response_content = response_content.strip()
-        if config.enable_debugging:
-            logger.info(f"Stripped response content: {repr(response_content)}")
+        logger.info(f"Stripped response content: {repr(response_content)}")
 
         # Try to extract JSON if there's extra text
         if not response_content.startswith("{"):
-            if config.enable_debugging:
-                logger.warning(
-                    "Response doesn't start with '{', trying to extract JSON"
-                )
+            logger.warning("Response doesn't start with '{', trying to extract JSON")
             # Find the first { and last }
             start = response_content.find("{")
             end = response_content.rfind("}") + 1
             if start != -1 and end != 0:
                 response_content = response_content[start:end]
-                if config.enable_debugging:
-                    logger.info(f"Extracted JSON: {repr(response_content)}")
+                logger.info(f"Extracted JSON: {repr(response_content)}")
             else:
                 logger.error("Could not find JSON boundaries in response")
+                logger.error(
+                    f"Full response for analysis: {repr(response_content[:500])}"
+                )
 
+        logger.info(f"About to parse JSON: {repr(response_content[:200])}")
         summaries = json.loads(response_content)
 
         # Validate that we have the required keys
