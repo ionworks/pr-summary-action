@@ -10,9 +10,6 @@ inputs:
   model:
     description: "AI model (gpt-3.5-turbo, gpt-4)"
     default: "gpt-3.5-turbo"
-  slack_channel:
-    description: "Override Slack channel"
-    default: ""
 runs:
   using: "composite"
   steps:
@@ -30,5 +27,4 @@ runs:
         SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
         GITHUB_TOKEN: ${{ github.token }}
         MODEL: ${{ inputs.model }}
-        SLACK_CHANNEL: ${{ inputs.slack_channel }}
       run: python -m pr_summary_action.summarize

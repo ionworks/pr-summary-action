@@ -15,5 +15,3 @@ jobs:
           slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
           # Optional: Use GPT-4 for better summaries
           model: "gpt-3.5-turbo"
-          # Optional: Override default Slack channel
-          slack_channel: ""

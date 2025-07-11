@@ -64,14 +64,15 @@ jobs:
     model: "gpt-4"
 ```
 
-### Custom Slack Channel
+### Different Slack Channel
+
+To post to a different channel, create a separate webhook for that channel in Slack and use it:
 
 ```yaml
 - uses: ionworks/pr-summary-action@v1.3
   with:
     openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-    slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
-    slack_channel: "#team-frontend"
+    slack_webhook: ${{ secrets.SLACK_WEBHOOK_FRONTEND }} # Different webhook for #frontend
 ```
 
 ### Full Configuration
@@ -82,7 +83,6 @@ jobs:
     openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
     model: "gpt-4"
-    slack_channel: "#releases"
 ```
 
 ## How It Works
@@ -98,7 +98,7 @@ jobs:
 - ✅ **One-line setup** - Works across all repos instantly
 - ✅ **AI-powered** - Technical and marketing summaries
 - ✅ **Slack integration** - Rich formatted messages with buttons
-- ✅ **Customizable** - Choose AI model and Slack channel
+- ✅ **Customizable** - Choose AI model and different webhooks for different channels
 
 ## Security
 
@@ -121,7 +121,7 @@ The action uses **GitHub secrets** passed as inputs for secure credential storag
 ## Pro Tips
 
 - Use GPT-4 for critical repositories that need high-quality summaries
-- Override Slack channels for different teams/projects
+- Create different webhooks for different teams/projects (each webhook targets a specific channel)
 - Add repo-specific logic in `summarize.py` using `os.environ['GITHUB_REPOSITORY']`
 - Monitor your OpenAI API usage to manage costs
 
