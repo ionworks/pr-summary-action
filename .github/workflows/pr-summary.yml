@@ -1,0 +1,15 @@
+name: PR Summary
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  summary:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ionworks/pr-summary-action@v1.3
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          model: "gpt-4" # Using GPT-4 for better summaries on this repo
