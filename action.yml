@@ -1,5 +1,5 @@
-name: "PR Summary & Changelog"
-description: "AI-powered PR summaries to Slack/Changelog"
+name: "PR Summary"
+description: "AI-powered PR summaries to Slack"
 inputs:
   model:
     description: "AI model (gpt-3.5-turbo, gpt-4)"
@@ -12,16 +12,17 @@ runs:
   steps:
     - uses: actions/setup-python@v4
       with:
-        python-version: "3.9"
+        python-version: "3.11"
     - shell: bash
-      run: pip install openai requests
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ${{ github.action_path }}
     - shell: bash
       env:
         # Embed your actual credentials here
         OPENAI_API_KEY: "sk-your-key-here"
         SLACK_WEBHOOK: "https://hooks.slack.com/your-webhook"
-        CHANGELOG_WEBHOOK: "https://feedback.ionworks.com/api/changelog"
         GITHUB_TOKEN: ${{ github.token }}
         MODEL: ${{ inputs.model }}
         SLACK_CHANNEL: ${{ inputs.slack_channel }}
-      run: python ${{ github.action_path }}/summarize.py
+      run: python -m pr_summary_action.summarize

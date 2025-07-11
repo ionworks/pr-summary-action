@@ -70,15 +70,5 @@ slack_msg = {
 
 requests.post(os.environ["SLACK_WEBHOOK"], json=slack_msg)
 
-# Post to changelog
-changelog_data = {
-    "title": pr["title"],
-    "content": summaries["marketing"],
-    "date": pr["merged_at"],
-    "pr_url": pr["html_url"],
-}
-
-if os.environ.get("CHANGELOG_WEBHOOK"):
-    requests.post(os.environ["CHANGELOG_WEBHOOK"], json=changelog_data)
 
 print(f"✅ Summarized PR #{pr['number']}")

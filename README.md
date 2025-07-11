@@ -1,6 +1,6 @@
 # PR Summary Action
 
-AI-powered PR summaries to Slack and Changelog service with embedded credentials for private use.
+AI-powered PR summaries to Slack with embedded credentials for private use.
 
 ## Quick Setup (Private Action)
 
@@ -19,7 +19,6 @@ Edit the `action.yml` file and replace the placeholder credentials with your act
 # Replace these with your actual credentials
 OPENAI_API_KEY: "sk-your-actual-key-here"
 SLACK_WEBHOOK: "https://hooks.slack.com/your-actual-webhook"
-CHANGELOG_WEBHOOK: "https://feedback.ionworks.com/api/changelog" # Optional
 ```
 
 ### 3. Deploy
@@ -87,7 +86,6 @@ jobs:
 2. **Analyzes**: Gets PR title, description, and diff
 3. **Summarizes**: Uses OpenAI to generate technical and marketing summaries
 4. **Posts**: Sends formatted message to Slack with PR link
-5. **Logs**: Posts to changelog service (if configured)
 
 ## Features
 
@@ -95,7 +93,6 @@ jobs:
 - ✅ **One-line setup** - Works across all repos instantly
 - ✅ **AI-powered** - Technical and marketing summaries
 - ✅ **Slack integration** - Rich formatted messages with buttons
-- ✅ **Changelog service** - Optional external logging
 - ✅ **Customizable** - Choose AI model and Slack channel
 
 ## Security
@@ -114,4 +111,3 @@ Since this is a **private repository**, only your organization can use the actio
 - Private GitHub repository (for credential security)
 - OpenAI API key
 - Slack webhook URL
-- Optional: Changelog service webhook

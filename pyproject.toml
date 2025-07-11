@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pr-summary-action"
+version = "0.0.0"
+description = "AI-powered PR summaries to Slack"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Ionworks", email = "info@ionworks.com" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Communications :: Chat",
+]
+keywords = ["github", "actions", "slack", "ai", "openai", "pr", "summary"]
+requires-python = ">=3.9"
+dependencies = ["openai>=1.0.0", "requests>=2.28.0", "python-dotenv>=1.0.0"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "types-requests>=2.28.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "responses>=0.23.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ionworks/pr-summary-action"
+Repository = "https://github.com/ionworks/pr-summary-action"
+Issues = "https://github.com/ionworks/pr-summary-action/issues"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pr_summary_action"]
+
+[tool.hatch.version]
+path = "src/pr_summary_action/__init__.py"
