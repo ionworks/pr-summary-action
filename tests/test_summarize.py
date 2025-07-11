@@ -246,8 +246,8 @@ class TestGenerateSummaries:
         assert result["technical"] == pr_data["title"]
         assert result["marketing"] == "Improvements and updates"
 
-    def test_generate_summaries_includes_author_info(self):
-        """Test that author information is included in the prompt."""
+    def test_generate_summaries_excludes_author_info(self):
+        """Test that author information is NOT included in the prompt."""
         pr_data = MockGitHubEvents.feature_pr_event()["pull_request"]
         diff = MockPRDiffs.feature_diff()
 
@@ -269,13 +269,18 @@ class TestGenerateSummaries:
 
         generate_summaries(pr_data, diff, mock_client, config)
 
-        # Check that the prompt includes author information
+        # Check that the prompt does NOT include author information
         call_args = mock_client.chat.completions.create.call_args
         prompt = call_args[1]["messages"][1]["content"]
 
-        assert "Author: John Developer (@developer1)" in prompt
-        assert "Merged by: Maintainer (@maintainer)" in prompt
-        assert "Branches: feature/oauth2-auth → main" in prompt
+        # Verify author info is not in prompt
+        assert "Author:" not in prompt
+        assert "Merged by:" not in prompt
+        assert "@developer1" not in prompt
+        assert "@maintainer" not in prompt
+
+        # But verify the instruction to exclude author names is present
+        assert "Do not mention author names in the summaries" in prompt
 
 
 class TestPostToSlack:
