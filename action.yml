@@ -19,9 +19,9 @@ runs:
         pip install -e ${{ github.action_path }}
     - shell: bash
       env:
-        # Embed your actual credentials here
-        OPENAI_API_KEY: "sk-your-key-here"
-        SLACK_WEBHOOK: "https://hooks.slack.com/your-webhook"
+        # Use GitHub secrets for secure credential storage
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         GITHUB_TOKEN: ${{ github.token }}
         MODEL: ${{ inputs.model }}
         SLACK_CHANNEL: ${{ inputs.slack_channel }}

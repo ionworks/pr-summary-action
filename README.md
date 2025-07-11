@@ -1,36 +1,29 @@
 # PR Summary Action
 
-AI-powered PR summaries to Slack with embedded credentials for private use.
+AI-powered PR summaries to Slack using GitHub secrets for secure credential management.
 
-## Quick Setup (Private Action)
+## Quick Setup
 
-### 1. Create Private Repository
+### 1. The action is already deployed at `ionworks/pr-summary-action`
 
-```bash
-gh repo create your-org/pr-summary-action --private
-cd pr-summary-action
-```
+No need to create your own repository - just use the public action with GitHub secrets.
 
-### 2. Configure Credentials
+### 2. Configure GitHub Secrets
 
-Edit the `action.yml` file and replace the placeholder credentials with your actual values:
+The action uses GitHub secrets for secure credential storage. You need to add these secrets to any repository where you want to use the action:
 
-```yaml
-# Replace these with your actual credentials
-OPENAI_API_KEY: "sk-your-actual-key-here"
-SLACK_WEBHOOK: "https://hooks.slack.com/your-actual-webhook"
-```
+**Required Secrets:**
 
-### 3. Deploy
+- `OPENAI_API_KEY`: Your OpenAI API key (starts with `sk-`)
+- `SLACK_WEBHOOK`: Your Slack webhook URL (starts with `https://hooks.slack.com/`)
 
-```bash
-git add .
-git commit -m "Private PR summary action"
-git tag v1
-git push origin main --tags
-```
+**How to add secrets:**
 
-### 4. Use Everywhere (One Line!)
+1. Go to your repository Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add each secret with the exact names above
+
+### 3. Use Everywhere (One Line!)
 
 In any repo, create `.github/workflows/pr-summary.yml`:
 
@@ -44,7 +37,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: your-org/pr-summary-action@v1
+      - uses: ionworks/pr-summary-action@v1.1
 ```
 
 ## Usage Options
@@ -52,13 +45,13 @@ jobs:
 ### Basic Usage
 
 ```yaml
-- uses: your-org/pr-summary-action@v1
+- uses: ionworks/pr-summary-action@v1.1
 ```
 
 ### With GPT-4
 
 ```yaml
-- uses: your-org/pr-summary-action@v1
+- uses: ionworks/pr-summary-action@v1.1
   with:
     model: "gpt-4"
 ```
@@ -66,7 +59,7 @@ jobs:
 ### Custom Slack Channel
 
 ```yaml
-- uses: your-org/pr-summary-action@v1
+- uses: ionworks/pr-summary-action@v1.1
   with:
     slack_channel: "#team-frontend"
 ```
@@ -74,7 +67,7 @@ jobs:
 ### Full Configuration
 
 ```yaml
-- uses: your-org/pr-summary-action@v1
+- uses: ionworks/pr-summary-action@v1.1
   with:
     model: "gpt-4"
     slack_channel: "#releases"
@@ -89,7 +82,7 @@ jobs:
 
 ## Features
 
-- ✅ **No secrets management** - Credentials embedded in private action
+- ✅ **Secure credential management** - Uses GitHub secrets for secure storage
 - ✅ **One-line setup** - Works across all repos instantly
 - ✅ **AI-powered** - Technical and marketing summaries
 - ✅ **Slack integration** - Rich formatted messages with buttons
@@ -97,7 +90,12 @@ jobs:
 
 ## Security
 
-Since this is a **private repository**, only your organization can use the action with the embedded credentials. This eliminates the need for secret management across multiple repositories.
+The action uses **GitHub secrets** for secure credential storage. Each repository needs to have the required secrets configured in its settings. This ensures credentials are:
+
+- Encrypted and secure
+- Repository-specific
+- Not exposed in logs or code
+- Managed through GitHub's built-in security features
 
 ## Pro Tips
 
@@ -108,6 +106,6 @@ Since this is a **private repository**, only your organization can use the actio
 
 ## Requirements
 
-- Private GitHub repository (for credential security)
+- GitHub repository with configured secrets
 - OpenAI API key
 - Slack webhook URL
