@@ -37,7 +37,10 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: ionworks/pr-summary-action@v1.1
+      - uses: ionworks/pr-summary-action@v1.3
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 ```
 
 ## Usage Options
@@ -45,30 +48,39 @@ jobs:
 ### Basic Usage
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.1
+- uses: ionworks/pr-summary-action@v1.3
+  with:
+    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 ```
 
 ### With GPT-4
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.1
+- uses: ionworks/pr-summary-action@v1.3
   with:
+    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
     model: "gpt-4"
 ```
 
 ### Custom Slack Channel
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.1
+- uses: ionworks/pr-summary-action@v1.3
   with:
+    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
     slack_channel: "#team-frontend"
 ```
 
 ### Full Configuration
 
 ```yaml
-- uses: ionworks/pr-summary-action@v1.1
+- uses: ionworks/pr-summary-action@v1.3
   with:
+    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
     model: "gpt-4"
     slack_channel: "#releases"
 ```
@@ -90,12 +102,21 @@ jobs:
 
 ## Security
 
-The action uses **GitHub secrets** for secure credential storage. Each repository needs to have the required secrets configured in its settings. This ensures credentials are:
+The action uses **GitHub secrets** passed as inputs for secure credential storage. Each repository needs to have the required secrets configured in its settings. This ensures credentials are:
 
 - Encrypted and secure
 - Repository-specific
 - Not exposed in logs or code
 - Managed through GitHub's built-in security features
+- Explicitly passed (no hidden dependencies)
+
+## Why Use Inputs Instead of Direct Secret Access?
+
+✅ **Explicit**: Clear what secrets the action needs  
+✅ **Flexible**: Repositories can use different secret names  
+✅ **Reusable**: Works across different organizations  
+✅ **Secure**: Follows GitHub Actions best practices  
+✅ **Transparent**: Workflow files show exactly what's being passed
 
 ## Pro Tips
 

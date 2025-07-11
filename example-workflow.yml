@@ -8,8 +8,11 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: ionworks/pr-summary-action@v1.1
+      - uses: ionworks/pr-summary-action@v1.3
         with:
+          # Required: Pass secrets as inputs
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
           # Optional: Use GPT-4 for better summaries
           model: "gpt-3.5-turbo"
           # Optional: Override default Slack channel
