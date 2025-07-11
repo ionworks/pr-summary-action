@@ -53,27 +53,66 @@ def generate_summaries(
     pr: Dict[str, Any], diff: str, openai_client: OpenAI, model: str
 ) -> Dict[str, str]:
     """Generate technical and marketing summaries using OpenAI."""
-    prompt = f"""
-    Analyze this PR and create summaries:
+    prompt = f"""You are a technical writer creating PR summaries. 
 
-    Title: {pr["title"]}
-    Description: {pr.get("body", "")}
-    Diff: {diff[:3000]}...
+Analyze this pull request and create two summaries:
 
-    Return JSON:
-    {{"technical": "2-3 sentence technical summary", "marketing": "1-2 sentence user benefit"}}
-    """
+PR DETAILS:
+Title: {pr["title"]}
+Description: {pr.get("body", "")}
+Diff (first 3000 chars): {diff[:3000]}
+
+INSTRUCTIONS:
+- Create a "technical" summary (2-3 sentences describing what changed technically)
+- Create a "marketing" summary (1-2 sentences describing user benefits)
+- Respond with ONLY a valid JSON object, no other text
+- Use this exact format: {{"technical": "your technical summary", "marketing": "your marketing summary"}}
+
+JSON Response:"""
 
     try:
         response = openai_client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=200,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that responds only with valid JSON objects.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=300,
+            temperature=0.7,
         )
 
-        summaries = json.loads(response.choices[0].message.content)
+        response_content = response.choices[0].message.content
+        if not response_content:
+            raise ValueError("Empty response from OpenAI")
+
+        response_content = response_content.strip()
+        logger.info(f"OpenAI response: {response_content}")
+
+        # Try to extract JSON if there's extra text
+        if not response_content.startswith("{"):
+            # Find the first { and last }
+            start = response_content.find("{")
+            end = response_content.rfind("}") + 1
+            if start != -1 and end != 0:
+                response_content = response_content[start:end]
+
+        summaries = json.loads(response_content)
+
+        # Validate that we have the required keys
+        if "technical" not in summaries or "marketing" not in summaries:
+            raise ValueError("Response missing required keys")
+
         logger.info("Successfully generated AI summaries")
         return summaries
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON response: {e}")
+        raw_content = response.choices[0].message.content or "None"
+        logger.error(f"Raw response was: {raw_content}")
+        return {"technical": pr["title"], "marketing": "Improvements and updates"}
     except Exception as e:
         logger.error(f"Failed to generate summaries: {e}")
         return {"technical": pr["title"], "marketing": "Improvements and updates"}
