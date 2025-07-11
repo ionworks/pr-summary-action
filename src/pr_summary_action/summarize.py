@@ -260,22 +260,37 @@ def post_to_slack(
     base_branch = pr.get("base", {}).get("ref", "main")
     head_branch = pr.get("head", {}).get("ref", "feature")
 
-    # Build the Slack message with author information
+    # Build the Slack message with improved formatting
     slack_msg = {
         "text": f"🚀 PR #{pr['number']} Merged: {pr['title']}",
         "blocks": [
             {
-                "type": "section",
+                "type": "header",
                 "text": {
-                    "type": "mrkdwn",
-                    "text": f"**PR #{pr['number']}:** {pr['title']}\n**Author:** {author_display} (@{author_login})\n**Merged by:** {merged_by_display} (@{merged_by_login})\n**Branches:** `{head_branch}` → `{base_branch}`",
+                    "type": "plain_text",
+                    "text": f"🚀 PR #{pr['number']} Merged",
                 },
             },
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"**Technical:** {summaries['technical']}\n**Marketing:** {summaries['marketing']}",
+                    "text": f"*{pr['title']}*\n\n👤 *Author:* {author_display} (@{author_login})\n🔀 *Merged by:* {merged_by_display} (@{merged_by_login})\n🌿 *Branches:* `{head_branch}` → `{base_branch}`",
+                },
+            },
+            {"type": "divider"},
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"🔧 *Technical Summary:*\n{summaries['technical']}",
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"📈 *Business Impact:*\n{summaries['marketing']}",
                 },
             },
             {
@@ -283,8 +298,9 @@ def post_to_slack(
                 "elements": [
                     {
                         "type": "button",
-                        "text": {"type": "plain_text", "text": "View PR"},
+                        "text": {"type": "plain_text", "text": "🔗 View PR"},
                         "url": pr["html_url"],
+                        "style": "primary",
                     }
                 ],
             },
