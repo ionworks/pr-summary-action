@@ -6,6 +6,7 @@ import requests
 import logging
 from typing import Dict, Optional, Any
 from openai import OpenAI
+from .config import Config
 
 
 # Configure logging
@@ -13,67 +14,76 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load_pr_data() -> Dict[str, Any]:
+def load_pr_data(config: Config) -> Dict[str, Any]:
     """Load PR data from GitHub event."""
     try:
-        with open(os.environ["GITHUB_EVENT_PATH"]) as f:
+        with open(config.github_event_path) as f:
             event = json.load(f)
 
-        # Add debugging to log the full event data
-        logger.info("=== GitHub Event Data ===")
-        logger.info(f"Event action: {event.get('action')}")
-        logger.info(f"Event type: {event.get('type', 'unknown')}")
+        if config.enable_debugging:
+            # Add debugging to log the full event data
+            logger.info("=== GitHub Event Data ===")
+            logger.info(f"Event action: {event.get('action')}")
+            logger.info(f"Event type: {event.get('type', 'unknown')}")
 
-        if "pull_request" in event:
-            pr = event["pull_request"]
-            logger.info("=== PR Information ===")
-            logger.info(f"PR Number: {pr.get('number')}")
-            logger.info(f"PR Title: {pr.get('title')}")
-            logger.info(f"PR State: {pr.get('state')}")
-            logger.info(f"PR Merged: {pr.get('merged')}")
-            logger.info(f"PR Author: {pr.get('user', {}).get('login', 'unknown')}")
-            logger.info(f"PR Author Name: {pr.get('user', {}).get('name', 'N/A')}")
-            logger.info(f"PR Author Type: {pr.get('user', {}).get('type', 'unknown')}")
-            logger.info(f"PR Base Branch: {pr.get('base', {}).get('ref', 'unknown')}")
-            logger.info(f"PR Head Branch: {pr.get('head', {}).get('ref', 'unknown')}")
-            logger.info(f"PR Created At: {pr.get('created_at')}")
-            logger.info(f"PR Updated At: {pr.get('updated_at')}")
-            logger.info(f"PR Merged At: {pr.get('merged_at')}")
-            logger.info(f"PR HTML URL: {pr.get('html_url')}")
-
-            # Log additional PR details
-            logger.info(f"PR Body Length: {len(pr.get('body', '') or '')}")
-            logger.info(
-                f"PR Labels: {[label.get('name') for label in pr.get('labels', [])]}"
-            )
-            logger.info(f"PR Milestone: {pr.get('milestone', {}).get('title', 'None')}")
-            logger.info(
-                f"PR Assignees: {[assignee.get('login') for assignee in pr.get('assignees', [])]}"
-            )
-            logger.info(
-                f"PR Requested Reviewers: {[reviewer.get('login') for reviewer in pr.get('requested_reviewers', [])]}"
-            )
-
-            if pr.get("merged_by"):
+            if "pull_request" in event:
+                pr = event["pull_request"]
+                logger.info("=== PR Information ===")
+                logger.info(f"PR Number: {pr.get('number')}")
+                logger.info(f"PR Title: {pr.get('title')}")
+                logger.info(f"PR State: {pr.get('state')}")
+                logger.info(f"PR Merged: {pr.get('merged')}")
+                logger.info(f"PR Author: {pr.get('user', {}).get('login', 'unknown')}")
+                logger.info(f"PR Author Name: {pr.get('user', {}).get('name', 'N/A')}")
                 logger.info(
-                    f"PR Merged By: {pr.get('merged_by', {}).get('login', 'unknown')}"
+                    f"PR Author Type: {pr.get('user', {}).get('type', 'unknown')}"
+                )
+                logger.info(
+                    f"PR Base Branch: {pr.get('base', {}).get('ref', 'unknown')}"
+                )
+                logger.info(
+                    f"PR Head Branch: {pr.get('head', {}).get('ref', 'unknown')}"
+                )
+                logger.info(f"PR Created At: {pr.get('created_at')}")
+                logger.info(f"PR Updated At: {pr.get('updated_at')}")
+                logger.info(f"PR Merged At: {pr.get('merged_at')}")
+                logger.info(f"PR HTML URL: {pr.get('html_url')}")
+
+                # Log additional PR details
+                logger.info(f"PR Body Length: {len(pr.get('body', '') or '')}")
+                logger.info(
+                    f"PR Labels: {[label.get('name') for label in pr.get('labels', [])]}"
+                )
+                logger.info(
+                    f"PR Milestone: {(pr.get('milestone') or {}).get('title', 'None')}"
+                )
+                logger.info(
+                    f"PR Assignees: {[assignee.get('login') for assignee in pr.get('assignees', [])]}"
+                )
+                logger.info(
+                    f"PR Requested Reviewers: {[reviewer.get('login') for reviewer in pr.get('requested_reviewers', [])]}"
                 )
 
-        if "repository" in event:
-            repo = event["repository"]
-            logger.info("=== Repository Information ===")
-            logger.info(f"Repository Name: {repo.get('name')}")
-            logger.info(f"Repository Full Name: {repo.get('full_name')}")
-            logger.info(f"Repository Private: {repo.get('private')}")
-            logger.info(f"Repository Default Branch: {repo.get('default_branch')}")
+                if pr.get("merged_by"):
+                    logger.info(
+                        f"PR Merged By: {pr.get('merged_by', {}).get('login', 'unknown')}"
+                    )
 
-        if "sender" in event:
-            sender = event["sender"]
-            logger.info("=== Event Sender Information ===")
-            logger.info(f"Sender Login: {sender.get('login')}")
-            logger.info(f"Sender Type: {sender.get('type')}")
+            if "repository" in event:
+                repo = event["repository"]
+                logger.info("=== Repository Information ===")
+                logger.info(f"Repository Name: {repo.get('name')}")
+                logger.info(f"Repository Full Name: {repo.get('full_name')}")
+                logger.info(f"Repository Private: {repo.get('private')}")
+                logger.info(f"Repository Default Branch: {repo.get('default_branch')}")
 
-        logger.info("=== End GitHub Event Data ===")
+            if "sender" in event:
+                sender = event["sender"]
+                logger.info("=== Event Sender Information ===")
+                logger.info(f"Sender Login: {sender.get('login')}")
+                logger.info(f"Sender Type: {sender.get('type')}")
+
+            logger.info("=== End GitHub Event Data ===")
 
         return event
     except Exception as e:
@@ -107,7 +117,7 @@ def get_pr_diff(repo: str, pr_number: int, github_token: str) -> str:
 
 
 def generate_summaries(
-    pr: Dict[str, Any], diff: str, openai_client: OpenAI, model: str
+    pr: Dict[str, Any], diff: str, openai_client: OpenAI, config: Config
 ) -> Dict[str, str]:
     """Generate technical and marketing summaries using OpenAI."""
     # Extract author information
@@ -126,6 +136,9 @@ def generate_summaries(
     base_branch = pr.get("base", {}).get("ref", "unknown")
     head_branch = pr.get("head", {}).get("ref", "unknown")
 
+    # Truncate diff to configured length
+    diff_excerpt = diff[: config.max_diff_length]
+
     prompt = f"""You are a technical writer creating PR summaries. 
 
 Analyze this pull request and create two summaries:
@@ -136,7 +149,7 @@ Author: {author_display} (@{author_login})
 Merged by: {merged_by_display} (@{merged_by_login})
 Branches: {head_branch} → {base_branch}
 Description: {pr.get("body", "")}
-Diff (first 3000 chars): {diff[:3000]}
+Diff (first {config.max_diff_length} chars): {diff_excerpt}
 
 INSTRUCTIONS:
 - Create a "technical" summary (2-3 sentences describing what changed technically)
@@ -148,8 +161,12 @@ INSTRUCTIONS:
 JSON Response:"""
 
     try:
+        if config.enable_debugging:
+            logger.info(f"Making OpenAI API call with model: {config.openai_model}")
+            logger.info(f"Prompt length: {len(prompt)} characters")
+
         response = openai_client.chat.completions.create(
-            model=model,
+            model=config.openai_model,
             messages=[
                 {
                     "role": "system",
@@ -157,24 +174,60 @@ JSON Response:"""
                 },
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=300,
-            temperature=0.7,
+            max_tokens=config.max_tokens,
+            temperature=config.temperature,
         )
 
-        response_content = response.choices[0].message.content
+        if config.enable_debugging:
+            logger.info(f"OpenAI API call successful")
+            logger.info(f"Response object type: {type(response)}")
+            logger.info(f"Response has choices: {hasattr(response, 'choices')}")
+
+        if not hasattr(response, "choices") or not response.choices:
+            raise ValueError("OpenAI response has no choices")
+
+        if config.enable_debugging:
+            logger.info(f"Number of choices: {len(response.choices)}")
+
+        first_choice = response.choices[0]
+        if config.enable_debugging:
+            logger.info(f"First choice type: {type(first_choice)}")
+            logger.info(f"First choice has message: {hasattr(first_choice, 'message')}")
+
+        if not hasattr(first_choice, "message"):
+            raise ValueError("OpenAI response choice has no message")
+
+        message = first_choice.message
+        if config.enable_debugging:
+            logger.info(f"Message type: {type(message)}")
+            logger.info(f"Message has content: {hasattr(message, 'content')}")
+
+        response_content = message.content
+        if config.enable_debugging:
+            logger.info(f"Raw response content: {repr(response_content)}")
+
         if not response_content:
-            raise ValueError("Empty response from OpenAI")
+            raise ValueError("Empty response content from OpenAI")
 
         response_content = response_content.strip()
-        logger.info(f"OpenAI response: {response_content}")
+        if config.enable_debugging:
+            logger.info(f"Stripped response content: {repr(response_content)}")
 
         # Try to extract JSON if there's extra text
         if not response_content.startswith("{"):
+            if config.enable_debugging:
+                logger.warning(
+                    "Response doesn't start with '{', trying to extract JSON"
+                )
             # Find the first { and last }
             start = response_content.find("{")
             end = response_content.rfind("}") + 1
             if start != -1 and end != 0:
                 response_content = response_content[start:end]
+                if config.enable_debugging:
+                    logger.info(f"Extracted JSON: {repr(response_content)}")
+            else:
+                logger.error("Could not find JSON boundaries in response")
 
         summaries = json.loads(response_content)
 
@@ -187,16 +240,36 @@ JSON Response:"""
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON response: {e}")
-        raw_content = response.choices[0].message.content or "None"
-        logger.error(f"Raw response was: {raw_content}")
+        try:
+            raw_content = (
+                response.choices[0].message.content
+                if "response" in locals()
+                else "No response available"
+            )
+            logger.error(f"Raw response was: {repr(raw_content)}")
+        except:
+            logger.error("Could not access raw response content")
         return {"technical": pr["title"], "marketing": "Improvements and updates"}
     except Exception as e:
         logger.error(f"Failed to generate summaries: {e}")
+        logger.error(f"Error type: {type(e)}")
+        try:
+            if "response" in locals():
+                logger.error(f"Response object available: {type(response)}")
+                if hasattr(response, "choices") and response.choices:
+                    raw_content = response.choices[0].message.content
+                    logger.error(f"Raw response was: {repr(raw_content)}")
+                else:
+                    logger.error("Response object has no choices")
+            else:
+                logger.error("No response object available")
+        except Exception as debug_e:
+            logger.error(f"Error accessing response for debugging: {debug_e}")
         return {"technical": pr["title"], "marketing": "Improvements and updates"}
 
 
 def post_to_slack(
-    pr: Dict[str, Any], summaries: Dict[str, str], webhook_url: str
+    pr: Dict[str, Any], summaries: Dict[str, str], config: Config
 ) -> bool:
     """Post PR summary to Slack."""
     # Extract author information for Slack message
@@ -247,7 +320,7 @@ def post_to_slack(
     }
 
     try:
-        response = requests.post(webhook_url, json=slack_msg)
+        response = requests.post(config.slack_webhook, json=slack_msg)
         response.raise_for_status()
         logger.info("Successfully posted to Slack")
         return True
@@ -259,22 +332,16 @@ def post_to_slack(
 def main() -> None:
     """Main entry point for PR summarization."""
     try:
-        # Load environment variables
-        required_vars = [
-            "GITHUB_EVENT_PATH",
-            "GITHUB_REPOSITORY",
-            "GITHUB_TOKEN",
-            "OPENAI_API_KEY",
-            "SLACK_WEBHOOK",
-            "MODEL",
-        ]
+        # Load and validate configuration
+        config = Config.from_env()
+        config.validate()
 
-        for var in required_vars:
-            if not os.getenv(var):
-                raise ValueError(f"Required environment variable {var} not found")
+        if config.enable_debugging:
+            logger.info("Configuration loaded successfully")
+            logger.info(f"Configuration: {config.to_dict()}")
 
         # Load PR data
-        event = load_pr_data()
+        event = load_pr_data(config)
 
         # Check if we should process this PR
         if not should_process_pr(event):
@@ -282,19 +349,18 @@ def main() -> None:
             return
 
         pr = event["pull_request"]
-        repo = os.environ["GITHUB_REPOSITORY"]
 
         logger.info(f"Processing PR #{pr['number']}: {pr['title']}")
 
         # Get PR diff
-        diff = get_pr_diff(repo, pr["number"], os.environ["GITHUB_TOKEN"])
+        diff = get_pr_diff(config.github_repository, pr["number"], config.github_token)
 
         # Generate summaries
-        openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        summaries = generate_summaries(pr, diff, openai_client, os.environ["MODEL"])
+        openai_client = OpenAI(api_key=config.openai_api_key)
+        summaries = generate_summaries(pr, diff, openai_client, config)
 
         # Post to Slack
-        slack_success = post_to_slack(pr, summaries, os.environ["SLACK_WEBHOOK"])
+        slack_success = post_to_slack(pr, summaries, config)
 
         if slack_success:
             logger.info(f"✅ Successfully summarized PR #{pr['number']}")
