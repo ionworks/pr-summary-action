@@ -1,642 +1,510 @@
-"""
-Test fixtures for PR Summary Action tests.
-Contains realistic mock data for various PR scenarios.
-"""
+"""Test fixtures for PR summary tests."""
 
-import json
-from datetime import datetime, timezone
 from typing import Dict, Any
 
 
 class MockGitHubEvents:
-    """Mock GitHub event payloads for different PR scenarios."""
-    
+    """Mock GitHub event data for testing."""
+
     @staticmethod
     def get_base_pr_event() -> Dict[str, Any]:
         """Base PR event structure."""
         return {
             "action": "closed",
             "number": 42,
-            "repository": {
+            "pull_request": {
                 "id": 123456789,
+                "number": 42,
+                "state": "closed",
+                "locked": False,
+                "title": "Test PR",
+                "body": "This is a test PR description",
+                "created_at": "2023-11-15T10:30:00Z",
+                "updated_at": "2023-11-15T11:00:00Z",
+                "closed_at": "2023-11-15T11:00:00Z",
+                "merged_at": "2023-11-15T11:00:00Z",
+                "merged": True,
+                "mergeable": True,
+                "head": {
+                    "sha": "abc123def456",
+                    "ref": "feature-branch",
+                    "repo": {"name": "test-repo", "full_name": "test-org/test-repo"},
+                },
+                "base": {
+                    "sha": "def456ghi789",
+                    "ref": "main",
+                    "repo": {"name": "test-repo", "full_name": "test-org/test-repo"},
+                },
+                "user": {
+                    "login": "test-user",
+                    "id": 12345,
+                    "type": "User",
+                    "name": "Test User",
+                    "email": "test@example.com",
+                },
+                "merged_by": {
+                    "login": "maintainer",
+                    "id": 67890,
+                    "type": "User",
+                    "name": "Maintainer",
+                    "email": "maintainer@example.com",
+                },
+                "assignees": [],
+                "requested_reviewers": [],
+                "labels": [],
+                "milestone": None,
+                "draft": False,
+                "html_url": "https://github.com/test-org/test-repo/pull/42",
+            },
+            "repository": {
+                "id": 987654321,
                 "name": "test-repo",
-                "full_name": "testorg/test-repo",
-                "private": False,
-                "default_branch": "main",
-                "html_url": "https://github.com/testorg/test-repo",
+                "full_name": "test-org/test-repo",
+                "owner": {"login": "test-org", "id": 11111, "type": "Organization"},
             },
-            "sender": {
-                "login": "testuser",
-                "id": 12345,
-                "type": "User",
-                "html_url": "https://github.com/testuser",
-            },
+            "sender": {"login": "maintainer", "id": 67890, "type": "User"},
         }
 
     @staticmethod
     def feature_pr_event() -> Dict[str, Any]:
-        """Mock event for a feature PR."""
-        base = MockGitHubEvents.get_base_pr_event()
-        base["pull_request"] = {
-            "id": 987654321,
-            "number": 42,
-            "title": "Add user authentication with OAuth2",
-            "body": """## Description
-This PR adds OAuth2 authentication support to the application.
-
-## Changes
-- Added OAuth2 provider configuration
-- Implemented login/logout flow
-- Added user session management
-- Updated middleware for authentication checks
-
-## Testing
-- [ ] Unit tests for auth service
-- [ ] Integration tests for login flow
-- [ ] Manual testing with Google OAuth
-
-## Security
-- Secrets are stored in environment variables
-- Session cookies are httpOnly and secure
-- CSRF protection implemented
-
-Fixes #123""",
-            "state": "closed",
-            "merged": True,
-            "merged_at": "2024-01-15T10:30:00Z",
-            "created_at": "2024-01-14T09:00:00Z",
-            "updated_at": "2024-01-15T10:30:00Z",
-            "html_url": "https://github.com/testorg/test-repo/pull/42",
-            "user": {
-                "login": "developer1",
-                "id": 11111,
-                "name": "John Developer",
-                "type": "User",
-                "html_url": "https://github.com/developer1",
-            },
-            "merged_by": {
-                "login": "maintainer1",
-                "id": 22222,
-                "name": "Jane Maintainer",
-                "type": "User",
-                "html_url": "https://github.com/maintainer1",
-            },
-            "base": {
-                "ref": "main",
-                "sha": "abc123",
-                "repo": {
-                    "name": "test-repo",
-                    "full_name": "testorg/test-repo",
+        """Mock GitHub event for a feature PR."""
+        event = MockGitHubEvents.get_base_pr_event()
+        event["pull_request"].update(
+            {
+                "title": "Add user authentication with OAuth2",
+                "body": "## Summary\nThis PR adds OAuth2 authentication support using Google as the provider.\n\n## Changes\n- Added OAuth2Provider class for handling authentication\n- Implemented login/callback routes\n- Added session management\n- Updated authentication flow\n\n## Testing\n- Added unit tests for OAuth2Provider\n- Tested login flow manually\n- Verified callback handling\n\n## Security Notes\n- Uses HTTPS for all OAuth2 flows\n- Implements CSRF protection with state parameter\n- Session cookies are httpOnly and secure",
+                "head": {
+                    "sha": "feature123",
+                    "ref": "feature/oauth2-auth",
+                    "repo": {"name": "test-repo", "full_name": "test-org/test-repo"},
                 },
-            },
-            "head": {
-                "ref": "feature/oauth2-auth",
-                "sha": "def456",
-                "repo": {
-                    "name": "test-repo",
-                    "full_name": "testorg/test-repo",
-                },
-            },
-            "labels": [
-                {"name": "feature", "color": "0e8a16"},
-                {"name": "security", "color": "ee0701"},
-            ],
-            "milestone": {
-                "title": "v2.0.0",
-                "number": 1,
-            },
-            "assignees": [
-                {
+                "labels": [
+                    {"name": "feature", "color": "0e8a16"},
+                    {"name": "security", "color": "d93f0b"},
+                ],
+                "user": {
                     "login": "developer1",
-                    "id": 11111,
-                    "html_url": "https://github.com/developer1",
-                }
-            ],
-            "requested_reviewers": [
-                {
-                    "login": "reviewer1",
-                    "id": 33333,
-                    "html_url": "https://github.com/reviewer1",
-                }
-            ],
-        }
-        return base
+                    "id": 12345,
+                    "type": "User",
+                    "name": "John Developer",
+                    "email": "john@example.com",
+                },
+            }
+        )
+        return event
 
     @staticmethod
     def bugfix_pr_event() -> Dict[str, Any]:
-        """Mock event for a bugfix PR."""
-        base = MockGitHubEvents.get_base_pr_event()
-        base["pull_request"] = {
-            "id": 987654322,
-            "number": 43,
-            "title": "Fix memory leak in user session handling",
-            "body": """## Bug Description
-Users were experiencing memory leaks during long sessions due to improper cleanup of session data.
-
-## Root Cause
-Session objects were not being properly garbage collected when users logged out.
-
-## Fix
-- Added proper cleanup in logout handler
-- Implemented session timeout mechanism
-- Fixed event listeners that were not being removed
-
-## Testing
-- [x] Reproduced the memory leak
-- [x] Verified fix resolves the issue
-- [x] Added regression tests
-
-Fixes #456""",
-            "state": "closed",
-            "merged": True,
-            "merged_at": "2024-01-15T11:00:00Z",
-            "created_at": "2024-01-15T08:00:00Z",
-            "updated_at": "2024-01-15T11:00:00Z",
-            "html_url": "https://github.com/testorg/test-repo/pull/43",
-            "user": {
-                "login": "developer2",
-                "id": 44444,
-                "name": "Alice Developer",
-                "type": "User",
-                "html_url": "https://github.com/developer2",
-            },
-            "merged_by": {
-                "login": "maintainer1",
-                "id": 22222,
-                "name": "Jane Maintainer",
-                "type": "User",
-                "html_url": "https://github.com/maintainer1",
-            },
-            "base": {"ref": "main", "sha": "abc124"},
-            "head": {"ref": "bugfix/session-memory-leak", "sha": "def457"},
-            "labels": [
-                {"name": "bug", "color": "d73a4a"},
-                {"name": "critical", "color": "b60205"},
-            ],
-            "milestone": None,
-            "assignees": [],
-            "requested_reviewers": [],
-        }
-        return base
+        """Mock GitHub event for a bugfix PR."""
+        event = MockGitHubEvents.get_base_pr_event()
+        event["pull_request"].update(
+            {
+                "title": "Fix memory leak in session cleanup",
+                "body": "## Bug Description\nSession cleanup wasn't properly releasing memory, causing gradual memory leaks.\n\n## Root Cause\nThe cleanup timer wasn't being canceled properly, and callback references weren't being cleared.\n\n## Solution\n- Added proper timer cleanup\n- Implemented callback cleanup in session destruction\n- Added periodic cleanup timer management\n\n## Reproduction\n1. Create multiple sessions\n2. Let them expire\n3. Memory usage increases over time\n\n## Testing\n- Added unit tests for session cleanup\n- Verified memory usage remains stable\n- Tested timer management",
+                "head": {
+                    "sha": "bugfix456",
+                    "ref": "fix/session-memory-leak",
+                    "repo": {"name": "test-repo", "full_name": "test-org/test-repo"},
+                },
+                "labels": [
+                    {"name": "bug", "color": "d73a4a"},
+                    {"name": "memory", "color": "f9d0c4"},
+                ],
+                "user": {
+                    "login": "developer2",
+                    "id": 12346,
+                    "type": "User",
+                    "name": "Alice Developer",
+                    "email": "alice@example.com",
+                },
+            }
+        )
+        return event
 
     @staticmethod
     def docs_pr_event() -> Dict[str, Any]:
-        """Mock event for a documentation PR."""
-        base = MockGitHubEvents.get_base_pr_event()
-        base["pull_request"] = {
-            "id": 987654323,
-            "number": 44,
-            "title": "Update API documentation with new endpoints",
-            "body": """## Documentation Updates
-Updated API documentation to include new authentication endpoints.
-
-## Changes
-- Added OAuth2 endpoint documentation
-- Updated examples with new authentication flow
-- Fixed typos in existing documentation
-- Added troubleshooting section
-
-## Review Notes
-- All examples have been tested
-- Screenshots updated with new UI""",
-            "state": "closed",
-            "merged": True,
-            "merged_at": "2024-01-15T12:00:00Z",
-            "created_at": "2024-01-15T09:30:00Z",
-            "updated_at": "2024-01-15T12:00:00Z",
-            "html_url": "https://github.com/testorg/test-repo/pull/44",
-            "user": {
-                "login": "techwriter1",
-                "id": 55555,
-                "name": "Bob Writer",
-                "type": "User",
-                "html_url": "https://github.com/techwriter1",
-            },
-            "merged_by": {
-                "login": "techwriter1",
-                "id": 55555,
-                "name": "Bob Writer",
-                "type": "User",
-                "html_url": "https://github.com/techwriter1",
-            },
-            "base": {"ref": "main", "sha": "abc125"},
-            "head": {"ref": "docs/api-updates", "sha": "def458"},
-            "labels": [
-                {"name": "documentation", "color": "0075ca"},
-            ],
-            "milestone": None,
-            "assignees": [],
-            "requested_reviewers": [],
-        }
-        return base
+        """Mock GitHub event for a documentation PR."""
+        event = MockGitHubEvents.get_base_pr_event()
+        event["pull_request"].update(
+            {
+                "title": "Update authentication API documentation",
+                "body": "## Documentation Updates\nUpdated the authentication API documentation to reflect the new OAuth2 implementation.\n\n## Changes\n- Added OAuth2 endpoint documentation\n- Updated authentication flow diagrams\n- Added security considerations section\n- Updated error handling documentation\n\n## Review Notes\n- All examples have been tested\n- Links have been verified\n- Screenshots updated",
+                "head": {
+                    "sha": "docs789",
+                    "ref": "docs/update-auth-api",
+                    "repo": {"name": "test-repo", "full_name": "test-org/test-repo"},
+                },
+                "labels": [{"name": "documentation", "color": "0075ca"}],
+                "user": {
+                    "login": "techwriter1",
+                    "id": 12347,
+                    "type": "User",
+                    "name": "Bob Writer",
+                    "email": "bob@example.com",
+                },
+            }
+        )
+        return event
 
     @staticmethod
     def refactor_pr_event() -> Dict[str, Any]:
-        """Mock event for a refactoring PR."""
-        base = MockGitHubEvents.get_base_pr_event()
-        base["pull_request"] = {
-            "id": 987654324,
-            "number": 45,
-            "title": "Refactor authentication service for better maintainability",
-            "body": """## Refactoring Goals
-Improve code maintainability and testability of the authentication service.
-
-## Changes
-- Split large AuthService class into smaller, focused classes
-- Extracted interface for better dependency injection
-- Added comprehensive unit tests
-- Improved error handling with custom exceptions
-- Updated documentation
-
-## Performance Impact
-- No performance regression expected
-- Slight improvement in memory usage due to better object lifecycle management
-
-## Migration Notes
-- All public APIs remain unchanged
-- Internal implementation details have changed
-- Updated all internal references""",
-            "state": "closed",
-            "merged": True,
-            "merged_at": "2024-01-15T14:00:00Z",
-            "created_at": "2024-01-14T16:00:00Z",
-            "updated_at": "2024-01-15T14:00:00Z",
-            "html_url": "https://github.com/testorg/test-repo/pull/45",
-            "user": {
-                "login": "developer3",
-                "id": 66666,
-                "name": "Charlie Developer",
-                "type": "User",
-                "html_url": "https://github.com/developer3",
-            },
-            "merged_by": {
-                "login": "maintainer2",
-                "id": 77777,
-                "name": "David Maintainer",
-                "type": "User",
-                "html_url": "https://github.com/maintainer2",
-            },
-            "base": {"ref": "main", "sha": "abc126"},
-            "head": {"ref": "refactor/auth-service", "sha": "def459"},
-            "labels": [
-                {"name": "refactoring", "color": "e4e669"},
-                {"name": "improvement", "color": "a2eeef"},
-            ],
-            "milestone": {
-                "title": "Tech Debt Sprint",
-                "number": 2,
-            },
-            "assignees": [
-                {
-                    "login": "developer3",
-                    "id": 66666,
-                    "html_url": "https://github.com/developer3",
-                }
-            ],
-            "requested_reviewers": [
-                {
-                    "login": "architect1",
-                    "id": 88888,
-                    "html_url": "https://github.com/architect1",
-                }
-            ],
-        }
-        return base
+        """Mock GitHub event for a refactoring PR."""
+        event = MockGitHubEvents.get_base_pr_event()
+        event["pull_request"].update(
+            {
+                "title": "Refactor authentication service architecture",
+                "body": "## Refactoring Overview\nRefactored the authentication service to use dependency injection and improve testability.\n\n## Changes\n- Introduced IAuthService interface\n- Added dependency injection for user repository and session manager\n- Simplified authentication flow\n- Improved error handling with custom exceptions\n\n## Benefits\n- Better testability with mocked dependencies\n- Cleaner separation of concerns\n- More maintainable code structure\n- Easier to extend with new authentication methods\n\n## Breaking Changes\nNone - all public APIs remain the same.",
+                "head": {
+                    "sha": "refactor101",
+                    "ref": "refactor/auth-service-di",
+                    "repo": {"name": "test-repo", "full_name": "test-org/test-repo"},
+                },
+                "labels": [
+                    {"name": "refactor", "color": "fbca04"},
+                    {"name": "architecture", "color": "d4c5f9"},
+                ],
+            }
+        )
+        return event
 
 
 class MockPRDiffs:
-    """Mock PR diffs for different scenarios."""
-    
+    """Mock PR diff data for testing."""
+
     @staticmethod
     def feature_diff() -> str:
         """Mock diff for a feature PR."""
-        return """diff --git a/src/auth/oauth.py b/src/auth/oauth.py
-new file mode 100644
-index 0000000..123456
---- /dev/null
-+++ b/src/auth/oauth.py
-@@ -0,0 +1,45 @@
-+"""OAuth2 authentication implementation."""
-+
-+import os
-+from typing import Optional
-+from authlib.integrations.flask_client import OAuth
-+from flask import current_app
-+
-+
-+class OAuth2Provider:
-+    """OAuth2 authentication provider."""
-+    
-+    def __init__(self, app=None):
-+        self.oauth = OAuth()
-+        if app:
-+            self.init_app(app)
-+    
-+    def init_app(self, app):
-+        """Initialize OAuth2 with Flask app."""
-+        self.oauth.init_app(app)
-+        
-+        # Configure Google OAuth2
-+        self.google = self.oauth.register(
-+            name='google',
-+            client_id=os.getenv('GOOGLE_CLIENT_ID'),
-+            client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
-+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-+            client_kwargs={
-+                'scope': 'openid email profile'
-+            }
-+        )
-+    
-+    def get_auth_url(self, redirect_uri: str) -> str:
-+        """Generate authorization URL."""
-+        return self.google.authorize_redirect(redirect_uri)
-+    
-+    def get_user_info(self, token: dict) -> Optional[dict]:
-+        """Get user information from token."""
-+        try:
-+            user_info = self.google.parse_id_token(token)
-+            return {
-+                'id': user_info['sub'],
-+                'email': user_info['email'],
-+                'name': user_info['name'],
-+            }
-+        except Exception:
-+            return None
-diff --git a/src/auth/routes.py b/src/auth/routes.py
-index 789abc..def123 100644
---- a/src/auth/routes.py
-+++ b/src/auth/routes.py
-@@ -1,5 +1,6 @@
- """Authentication routes."""
- 
-+from flask import Blueprint, session, redirect, url_for, request
- from .oauth import OAuth2Provider
- 
- auth_bp = Blueprint('auth', __name__)
-@@ -10,3 +11,25 @@ oauth_provider = OAuth2Provider()
- def login():
-     """Initiate OAuth2 login."""
-     return oauth_provider.get_auth_url(url_for('auth.callback', _external=True))
-+
-+@auth_bp.route('/callback')
-+def callback():
-+    """Handle OAuth2 callback."""
-+    token = oauth_provider.google.authorize_access_token()
-+    user_info = oauth_provider.get_user_info(token)
-+    
-+    if user_info:
-+        session['user_id'] = user_info['id']
-+        session['user_email'] = user_info['email']
-+        session['user_name'] = user_info['name']
-+        return redirect(url_for('dashboard'))
-+    
-+    return redirect(url_for('login', error='auth_failed'))
-+
-+@auth_bp.route('/logout')
-+def logout():
-+    """Logout user."""
-+    session.clear()
-+    return redirect(url_for('home'))
-"""
+        return (
+            "diff --git a/src/auth/oauth.py b/src/auth/oauth.py\n"
+            "new file mode 100644\n"
+            "index 0000000..123456\n"
+            "--- /dev/null\n"
+            "+++ b/src/auth/oauth.py\n"
+            "@@ -0,0 +1,45 @@\n"
+            '+"""OAuth2 authentication implementation."""\n'
+            "+\n"
+            "+import os\n"
+            "+from typing import Optional\n"
+            "+from authlib.integrations.flask_client import OAuth\n"
+            "+from flask import current_app\n"
+            "+\n"
+            "+\n"
+            "+class OAuth2Provider:\n"
+            '+    """OAuth2 authentication provider."""\n'
+            "+    \n"
+            "+    def __init__(self, app=None):\n"
+            "+        self.oauth = OAuth()\n"
+            "+        if app:\n"
+            "+            self.init_app(app)\n"
+            "+    \n"
+            "+    def init_app(self, app):\n"
+            '+        """Initialize OAuth2 with Flask app."""\n'
+            "+        self.oauth.init_app(app)\n"
+            "+        \n"
+            "+        # Configure Google OAuth2\n"
+            "+        self.google = self.oauth.register(\n"
+            "+            name='google',\n"
+            "+            client_id=os.getenv('GOOGLE_CLIENT_ID'),\n"
+            "+            client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),\n"
+            "+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',\n"
+            "+            client_kwargs={\n"
+            "+                'scope': 'openid email profile'\n"
+            "+            }\n"
+            "+        )\n"
+            "+    \n"
+            "+    def get_auth_url(self, redirect_uri: str) -> str:\n"
+            '+        """Generate authorization URL."""\n'
+            "+        return self.google.authorize_redirect(redirect_uri)\n"
+            "+    \n"
+            "+    def get_user_info(self, token: dict) -> Optional[dict]:\n"
+            '+        """Get user information from token."""\n'
+            "+        try:\n"
+            "+            user_info = self.google.parse_id_token(token)\n"
+            "+            return {\n"
+            "+                'id': user_info['sub'],\n"
+            "+                'email': user_info['email'],\n"
+            "+                'name': user_info['name'],\n"
+            "+            }\n"
+            "+        except Exception:\n"
+            "+            return None\n"
+            "diff --git a/src/auth/routes.py b/src/auth/routes.py\n"
+            "index 789abc..def123 100644\n"
+            "--- a/src/auth/routes.py\n"
+            "+++ b/src/auth/routes.py\n"
+            "@@ -1,5 +1,6 @@\n"
+            ' """Authentication routes."""\n'
+            " \n"
+            "+from flask import Blueprint, session, redirect, url_for, request\n"
+            " from .oauth import OAuth2Provider\n"
+            " \n"
+            " auth_bp = Blueprint('auth', __name__)\n"
+            "@@ -10,3 +11,25 @@ oauth_provider = OAuth2Provider()\n"
+            " def login():\n"
+            '     """Initiate OAuth2 login."""\n'
+            "     return oauth_provider.get_auth_url(url_for('auth.callback', _external=True))\n"
+            "+\n"
+            "+@auth_bp.route('/callback')\n"
+            "+def callback():\n"
+            '+    """Handle OAuth2 callback."""\n'
+            "+    token = oauth_provider.google.authorize_access_token()\n"
+            "+    user_info = oauth_provider.get_user_info(token)\n"
+            "+    \n"
+            "+    if user_info:\n"
+            "+        session['user_id'] = user_info['id']\n"
+            "+        session['user_email'] = user_info['email']\n"
+            "+        session['user_name'] = user_info['name']\n"
+            "+        return redirect(url_for('dashboard'))\n"
+            "+    \n"
+            "+    return redirect(url_for('login', error='auth_failed'))\n"
+            "+\n"
+            "+@auth_bp.route('/logout')\n"
+            "+def logout():\n"
+            '+    """Logout user."""\n'
+            "+    session.clear()\n"
+            "+    return redirect(url_for('home'))\n"
+        )
 
     @staticmethod
     def bugfix_diff() -> str:
         """Mock diff for a bugfix PR."""
-        return """diff --git a/src/auth/session.py b/src/auth/session.py
-index abc123..def456 100644
---- a/src/auth/session.py
-+++ b/src/auth/session.py
-@@ -15,6 +15,7 @@ class SessionManager:
-         self.sessions = {}
-         self.cleanup_interval = 300  # 5 minutes
-         self.max_age = 3600  # 1 hour
-+        self._cleanup_timer = None
-         
-     def create_session(self, user_id: str) -> str:
-         """Create a new session."""
-@@ -35,8 +36,12 @@ class SessionManager:
-     def cleanup_session(self, session_id: str):
-         """Clean up a specific session."""
-         if session_id in self.sessions:
--            del self.sessions[session_id]
-+            session_data = self.sessions.pop(session_id, None)
-+            if session_data and 'cleanup_callbacks' in session_data:
-+                for callback in session_data['cleanup_callbacks']:
-+                    try:
-+                        callback()
-+                    except Exception as e:
-+                        logger.warning(f"Session cleanup callback failed: {e}")
-             
-     def cleanup_expired_sessions(self):
-         """Clean up expired sessions."""
-@@ -48,6 +53,16 @@ class SessionManager:
-                 expired_sessions.append(session_id)
-         
-         for session_id in expired_sessions:
-             self.cleanup_session(session_id)
-+    
-+    def start_cleanup_timer(self):
-+        """Start periodic cleanup timer."""
-+        if self._cleanup_timer:
-+            self._cleanup_timer.cancel()
-+        
-+        self._cleanup_timer = threading.Timer(
-+            self.cleanup_interval, 
-+            self._periodic_cleanup
-+        )
-+        self._cleanup_timer.daemon = True
-+        self._cleanup_timer.start()
-"""
+        return (
+            "diff --git a/src/auth/session.py b/src/auth/session.py\n"
+            "index abc123..def456 100644\n"
+            "--- a/src/auth/session.py\n"
+            "+++ b/src/auth/session.py\n"
+            "@@ -15,6 +15,7 @@ class SessionManager:\n"
+            "         self.sessions = {}\n"
+            "         self.cleanup_interval = 300  # 5 minutes\n"
+            "         self.max_age = 3600  # 1 hour\n"
+            "+        self._cleanup_timer = None\n"
+            "         \n"
+            "     def create_session(self, user_id: str) -> str:\n"
+            '         """Create a new session."""\n'
+            "@@ -35,8 +36,12 @@ class SessionManager:\n"
+            "     def cleanup_session(self, session_id: str):\n"
+            '         """Clean up a specific session."""\n'
+            "         if session_id in self.sessions:\n"
+            "-            del self.sessions[session_id]\n"
+            "+            session_data = self.sessions.pop(session_id, None)\n"
+            "+            if session_data and 'cleanup_callbacks' in session_data:\n"
+            "+                for callback in session_data['cleanup_callbacks']:\n"
+            "+                    try:\n"
+            "+                        callback()\n"
+            "+                    except Exception as e:\n"
+            '+                        logger.warning(f"Session cleanup callback failed: {e}")\n'
+            "             \n"
+            "     def cleanup_expired_sessions(self):\n"
+            '         """Clean up expired sessions."""\n'
+            "@@ -48,6 +53,16 @@ class SessionManager:\n"
+            "                 expired_sessions.append(session_id)\n"
+            "         \n"
+            "         for session_id in expired_sessions:\n"
+            "             self.cleanup_session(session_id)\n"
+            "+    \n"
+            "+    def start_cleanup_timer(self):\n"
+            '+        """Start periodic cleanup timer."""\n'
+            "+        if self._cleanup_timer:\n"
+            "+            self._cleanup_timer.cancel()\n"
+            "+        \n"
+            "+        self._cleanup_timer = threading.Timer(\n"
+            "+            self.cleanup_interval, \n"
+            "+            self._periodic_cleanup\n"
+            "+        )\n"
+            "+        self._cleanup_timer.daemon = True\n"
+            "+        self._cleanup_timer.start()\n"
+        )
 
     @staticmethod
     def docs_diff() -> str:
         """Mock diff for a documentation PR."""
-        return """diff --git a/docs/api/authentication.md b/docs/api/authentication.md
-index 111222..333444 100644
---- a/docs/api/authentication.md
-+++ b/docs/api/authentication.md
-@@ -1,6 +1,8 @@
- # Authentication API
- 
--The Authentication API provides endpoints for user login and logout.
-+The Authentication API provides endpoints for user authentication using OAuth2.
-+
-+## Overview
- 
- ## Endpoints
- 
-@@ -15,6 +17,42 @@ POST /auth/login
- }
- ```
- 
-+### OAuth2 Login
-+
-+Initiate OAuth2 authentication flow.
-+
-+```http
-+GET /auth/oauth/login
-+```
-+
-+**Response:**
-+- `302 Redirect` to OAuth2 provider
-+
-+### OAuth2 Callback
-+
-+Handle OAuth2 callback from provider.
-+
-+```http
-+GET /auth/oauth/callback?code=<authorization_code>&state=<state>
-+```
-+
-+**Parameters:**
-+- `code` (string): Authorization code from OAuth2 provider
-+- `state` (string): State parameter for CSRF protection
-+
-+**Response:**
-+- `302 Redirect` to dashboard on success
-+- `302 Redirect` to login on failure
-+
-+## Authentication Flow
-+
-+1. User clicks login button
-+2. Application redirects to `/auth/oauth/login`
-+3. User is redirected to OAuth2 provider (Google)
-+4. User authorizes the application
-+5. OAuth2 provider redirects back to `/auth/oauth/callback`
-+6. Application validates the authorization code
-+7. User is logged in and redirected to dashboard
-+
- ## Error Handling
- 
- All authentication endpoints return appropriate HTTP status codes:
-@@ -22,3 +60,12 @@ All authentication endpoints return appropriate HTTP status codes:
- - `401 Unauthorized` - Invalid credentials
- - `403 Forbidden` - Access denied
- - `500 Internal Server Error` - Server error
-+
-+## Security Considerations
-+
-+- All OAuth2 flows use HTTPS
-+- State parameter prevents CSRF attacks
-+- Session cookies are httpOnly and secure
-+- Access tokens are not exposed to client-side JavaScript
-+- Sessions expire after 1 hour of inactivity
-+- Failed login attempts are rate limited
-"""
+        return (
+            "diff --git a/docs/api/authentication.md b/docs/api/authentication.md\n"
+            "index 111222..333444 100644\n"
+            "--- a/docs/api/authentication.md\n"
+            "+++ b/docs/api/authentication.md\n"
+            "@@ -1,6 +1,8 @@\n"
+            " # Authentication API\n"
+            " \n"
+            "-The Authentication API provides endpoints for user login and logout.\n"
+            "+The Authentication API provides endpoints for user authentication using OAuth2.\n"
+            "+\n"
+            "+## Overview\n"
+            " \n"
+            " ## Endpoints\n"
+            " \n"
+            "@@ -15,6 +17,42 @@ POST /auth/login\n"
+            " }\n"
+            " ```\n"
+            " \n"
+            "+### OAuth2 Login\n"
+            "+\n"
+            "+Initiate OAuth2 authentication flow.\n"
+            "+\n"
+            "+```http\n"
+            "+GET /auth/oauth/login\n"
+            "+```\n"
+            "+\n"
+            "+**Response:**\n"
+            "+- `302 Redirect` to OAuth2 provider\n"
+            "+\n"
+            "+### OAuth2 Callback\n"
+            "+\n"
+            "+Handle OAuth2 callback from provider.\n"
+            "+\n"
+            "+```http\n"
+            "+GET /auth/oauth/callback?code=<authorization_code>&state=<state>\n"
+            "+```\n"
+            "+\n"
+            "+**Parameters:**\n"
+            "+- `code` (string): Authorization code from OAuth2 provider\n"
+            "+- `state` (string): State parameter for CSRF protection\n"
+            "+\n"
+            "+**Response:**\n"
+            "+- `302 Redirect` to dashboard on success\n"
+            "+- `302 Redirect` to login on failure\n"
+            "+\n"
+            "+## Authentication Flow\n"
+            "+\n"
+            "+1. User clicks login button\n"
+            "+2. Application redirects to `/auth/oauth/login`\n"
+            "+3. User is redirected to OAuth2 provider (Google)\n"
+            "+4. User authorizes the application\n"
+            "+5. OAuth2 provider redirects back to `/auth/oauth/callback`\n"
+            "+6. Application validates the authorization code\n"
+            "+7. User is logged in and redirected to dashboard\n"
+            "+\n"
+            " ## Error Handling\n"
+            " \n"
+            " All authentication endpoints return appropriate HTTP status codes:\n"
+            "@@ -22,3 +60,12 @@ All authentication endpoints return appropriate HTTP status codes:\n"
+            " - `401 Unauthorized` - Invalid credentials\n"
+            " - `403 Forbidden` - Access denied\n"
+            " - `500 Internal Server Error` - Server error\n"
+            "+\n"
+            "+## Security Considerations\n"
+            "+\n"
+            "+- All OAuth2 flows use HTTPS\n"
+            "+- State parameter prevents CSRF attacks\n"
+            "+- Session cookies are httpOnly and secure\n"
+            "+- Access tokens are not exposed to client-side JavaScript\n"
+            "+- Sessions expire after 1 hour of inactivity\n"
+            "+- Failed login attempts are rate limited\n"
+        )
 
     @staticmethod
     def refactor_diff() -> str:
         """Mock diff for a refactoring PR."""
-        return """diff --git a/src/auth/service.py b/src/auth/service.py
-index aaa111..bbb222 100644
---- a/src/auth/service.py
-+++ b/src/auth/service.py
-@@ -1,50 +1,25 @@
- """Authentication service."""
- 
--import hashlib
--import secrets
--from typing import Optional, Dict, Any
-+from typing import Optional
-+from .interfaces import IAuthService, IUserRepository, ISessionManager
-+from .exceptions import AuthenticationError, AuthorizationError
- 
- 
--class AuthService:
--    """Main authentication service."""
-+class AuthService(IAuthService):
-+    """OAuth2 authentication service implementation."""
-     
--    def __init__(self):
--        self.users = {}
--        self.sessions = {}
-+    def __init__(self, user_repo: IUserRepository, session_manager: ISessionManager):
-+        self.user_repo = user_repo
-+        self.session_manager = session_manager
-     
--    def login(self, username: str, password: str) -> Optional[str]:
--        """Login user with username and password."""
--        if not username or not password:
--            return None
--        
--        user = self.users.get(username)
--        if not user:
--            return None
--        
--        # Hash password and compare
--        password_hash = hashlib.sha256(password.encode()).hexdigest()
--        if user.get('password_hash') != password_hash:
--            return None
--        
--        # Create session
--        session_id = secrets.token_hex(32)
--        self.sessions[session_id] = {
--            'user_id': user['id'],
--            'username': username,
--            'created_at': datetime.now()
--        }
--        
--        return session_id
-+    def authenticate_user(self, oauth_token: dict) -> Optional[str]:
-+        """Authenticate user with OAuth2 token."""
-+        try:
-+            user_info = self._extract_user_info(oauth_token)
-+            user = self.user_repo.find_or_create_user(user_info)
-+            session_id = self.session_manager.create_session(user.id)
-+            return session_id
-+        except Exception as e:
-+            raise AuthenticationError(f"Authentication failed: {str(e)}")
-     
--    def logout(self, session_id: str) -> bool:
--        """Logout user by session ID."""
--        if session_id in self.sessions:
--            del self.sessions[session_id]
--            return True
--        return False
--    
--    def get_user_by_session(self, session_id: str) -> Optional[Dict[str, Any]]:
--        """Get user information by session ID."""
--        session = self.sessions.get(session_id)
--        if not session:
--            return None
--        
--        username = session['username']
--        return self.users.get(username)
-+    def logout_user(self, session_id: str) -> bool:
-+        """Logout user by session ID."""
-+        return self.session_manager.cleanup_session(session_id)
-"""
+        return (
+            "diff --git a/src/auth/service.py b/src/auth/service.py\n"
+            "index aaa111..bbb222 100644\n"
+            "--- a/src/auth/service.py\n"
+            "+++ b/src/auth/service.py\n"
+            "@@ -1,50 +1,25 @@\n"
+            ' """Authentication service."""\n'
+            " \n"
+            "-import hashlib\n"
+            "-import secrets\n"
+            "-from typing import Optional, Dict, Any\n"
+            "+from typing import Optional\n"
+            "+from .interfaces import IAuthService, IUserRepository, ISessionManager\n"
+            "+from .exceptions import AuthenticationError, AuthorizationError\n"
+            " \n"
+            " \n"
+            "-class AuthService:\n"
+            '-    """Main authentication service."""\n'
+            "+class AuthService(IAuthService):\n"
+            '+    """OAuth2 authentication service implementation."""\n'
+            "     \n"
+            "-    def __init__(self):\n"
+            "-        self.users = {}\n"
+            "-        self.sessions = {}\n"
+            "+    def __init__(self, user_repo: IUserRepository, session_manager: ISessionManager):\n"
+            "+        self.user_repo = user_repo\n"
+            "+        self.session_manager = session_manager\n"
+            "     \n"
+            "-    def login(self, username: str, password: str) -> Optional[str]:\n"
+            '-        """Login user with username and password."""\n'
+            "-        if not username or not password:\n"
+            "-            return None\n"
+            "-        \n"
+            "-        user = self.users.get(username)\n"
+            "-        if not user:\n"
+            "-            return None\n"
+            "-        \n"
+            "-        # Hash password and compare\n"
+            "-        password_hash = hashlib.sha256(password.encode()).hexdigest()\n"
+            "-        if user.get('password_hash') != password_hash:\n"
+            "-            return None\n"
+            "-        \n"
+            "-        # Create session\n"
+            "-        session_id = secrets.token_hex(32)\n"
+            "-        self.sessions[session_id] = {\n"
+            "-            'user_id': user['id'],\n"
+            "-            'username': username,\n"
+            "-            'created_at': datetime.now()\n"
+            "-        }\n"
+            "-        \n"
+            "-        return session_id\n"
+            "+    def authenticate_user(self, oauth_token: dict) -> Optional[str]:\n"
+            '+        """Authenticate user with OAuth2 token."""\n'
+            "+        try:\n"
+            "+            user_info = self._extract_user_info(oauth_token)\n"
+            "+            user = self.user_repo.find_or_create_user(user_info)\n"
+            "+            session_id = self.session_manager.create_session(user.id)\n"
+            "+            return session_id\n"
+            "+        except Exception as e:\n"
+            '+            raise AuthenticationError(f"Authentication failed: {str(e)}")\n'
+            "     \n"
+            "-    def logout(self, session_id: str) -> bool:\n"
+            '-        """Logout user by session ID."""\n'
+            "-        if session_id in self.sessions:\n"
+            "-            del self.sessions[session_id]\n"
+            "-            return True\n"
+            "-        return False\n"
+            "-    \n"
+            "-    def get_user_by_session(self, session_id: str) -> Optional[Dict[str, Any]]:\n"
+            '-        """Get user information by session ID."""\n'
+            "-        session = self.sessions.get(session_id)\n"
+            "-        if not session:\n"
+            "-            return None\n"
+            "-        \n"
+            "-        username = session['username']\n"
+            "-        return self.users.get(username)\n"
+            "+    def logout_user(self, session_id: str) -> bool:\n"
+            '+        """Logout user by session ID."""\n'
+            "+        return self.session_manager.cleanup_session(session_id)\n"
+        )
 
 
 class MockOpenAIResponses:
     """Mock OpenAI API responses for testing."""
-    
+
     @staticmethod
     def feature_summary() -> str:
         """Mock OpenAI response for feature PR."""
-        return '{"technical": "Added OAuth2 authentication support with Google provider integration, including secure session management and proper cleanup mechanisms for user login/logout flows.", "marketing": "Users can now securely log in using their Google accounts with a streamlined authentication experience."}'
-    
+        return '{"technical": "Added OAuth2 authentication using Google provider with proper session management and security measures", "marketing": "Enhanced security with modern OAuth2 authentication - users can now log in securely using their Google accounts"}'
+
     @staticmethod
     def bugfix_summary() -> str:
         """Mock OpenAI response for bugfix PR."""
-        return '{"technical": "Fixed critical memory leak in session handling by implementing proper cleanup callbacks and periodic garbage collection of expired sessions.", "marketing": "Improved application stability and performance during extended user sessions."}'
-    
+        return '{"technical": "Fixed memory leak in session cleanup by properly canceling timers and clearing callback references", "marketing": "Improved application performance by fixing a memory leak that could cause the system to slow down over time"}'
+
     @staticmethod
     def docs_summary() -> str:
         """Mock OpenAI response for documentation PR."""
-        return '{"technical": "Updated API documentation to include OAuth2 endpoints, security considerations, and complete authentication flow examples with proper error handling.", "marketing": "Developers now have comprehensive documentation for implementing secure authentication in their applications."}'
-    
+        return '{"technical": "Updated authentication API documentation to reflect OAuth2 implementation with comprehensive security guidelines", "marketing": "Improved developer experience with updated and comprehensive authentication documentation"}'
+
     @staticmethod
     def refactor_summary() -> str:
         """Mock OpenAI response for refactoring PR."""
-        return '{"technical": "Refactored authentication service into smaller, focused classes with dependency injection and improved error handling using custom exceptions.", "marketing": "Enhanced code maintainability and testing capabilities for more reliable authentication features."}'
-    
+        return '{"technical": "Refactored authentication service to use dependency injection pattern for better testability and maintainability", "marketing": "Enhanced code quality and maintainability through improved architecture - making the system more reliable and easier to extend"}'
+
     @staticmethod
     def invalid_json_response() -> str:
         """Mock invalid JSON response for error testing."""
-        return "Here's a summary of the changes: The PR adds new authentication features..."
-    
+        return "This is not valid JSON"
+
     @staticmethod
     def empty_response() -> str:
         """Mock empty response for error testing."""
-        return "" 
+        return ""

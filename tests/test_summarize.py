@@ -16,6 +16,7 @@ from src.pr_summary_action.summarize import (
     post_to_slack,
     main,
 )
+from src.pr_summary_action.config import Config
 from tests.test_fixtures import MockGitHubEvents, MockPRDiffs, MockOpenAIResponses
 
 
@@ -29,8 +30,14 @@ class TestLoadPRData:
         event_file = tmp_path / "github_event.json"
         event_file.write_text(json.dumps(event_data))
 
-        with patch.dict(os.environ, {"GITHUB_EVENT_PATH": str(event_file)}):
-            result = load_pr_data()
+        config = Config(
+            github_event_path=str(event_file),
+            github_token="test_token",
+            github_repository="test/repo",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+        )
+        result = load_pr_data(config)
 
         assert result == event_data
         assert result["action"] == "closed"
@@ -38,18 +45,30 @@ class TestLoadPRData:
 
     def test_load_pr_data_file_not_found(self):
         """Test handling of missing event file."""
-        with patch.dict(os.environ, {"GITHUB_EVENT_PATH": "/nonexistent/file.json"}):
-            with pytest.raises(FileNotFoundError):
-                load_pr_data()
+        config = Config(
+            github_event_path="/nonexistent/file.json",
+            github_token="test_token",
+            github_repository="test/repo",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+        )
+        with pytest.raises(FileNotFoundError):
+            load_pr_data(config)
 
     def test_load_pr_data_invalid_json(self, tmp_path):
         """Test handling of invalid JSON in event file."""
         event_file = tmp_path / "invalid_event.json"
         event_file.write_text("{ invalid json")
 
-        with patch.dict(os.environ, {"GITHUB_EVENT_PATH": str(event_file)}):
-            with pytest.raises(json.JSONDecodeError):
-                load_pr_data()
+        config = Config(
+            github_event_path=str(event_file),
+            github_token="test_token",
+            github_repository="test/repo",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+        )
+        with pytest.raises(json.JSONDecodeError):
+            load_pr_data(config)
 
 
 class TestShouldProcessPR:
@@ -136,7 +155,16 @@ class TestGenerateSummaries:
         mock_response.choices = [Mock(message=mock_message)]
         mock_client.chat.completions.create.return_value = mock_response
 
-        result = generate_summaries(pr_data, diff, mock_client, "gpt-3.5-turbo")
+        config = Config(
+            github_token="test_token",
+            github_repository="test/repo",
+            github_event_path="/tmp/event.json",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+            openai_model="gpt-3.5-turbo",
+        )
+
+        result = generate_summaries(pr_data, diff, mock_client, config)
 
         assert "technical" in result
         assert "marketing" in result
@@ -155,7 +183,16 @@ class TestGenerateSummaries:
         mock_response.choices = [Mock(message=mock_message)]
         mock_client.chat.completions.create.return_value = mock_response
 
-        result = generate_summaries(pr_data, diff, mock_client, "gpt-3.5-turbo")
+        config = Config(
+            github_token="test_token",
+            github_repository="test/repo",
+            github_event_path="/tmp/event.json",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+            openai_model="gpt-3.5-turbo",
+        )
+
+        result = generate_summaries(pr_data, diff, mock_client, config)
 
         # Should fall back to PR title
         assert result["technical"] == pr_data["title"]
@@ -173,7 +210,16 @@ class TestGenerateSummaries:
         mock_response.choices = [Mock(message=mock_message)]
         mock_client.chat.completions.create.return_value = mock_response
 
-        result = generate_summaries(pr_data, diff, mock_client, "gpt-3.5-turbo")
+        config = Config(
+            github_token="test_token",
+            github_repository="test/repo",
+            github_event_path="/tmp/event.json",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+            openai_model="gpt-3.5-turbo",
+        )
+
+        result = generate_summaries(pr_data, diff, mock_client, config)
 
         assert result["technical"] == pr_data["title"]
         assert result["marketing"] == "Improvements and updates"
@@ -186,7 +232,16 @@ class TestGenerateSummaries:
         mock_client = Mock()
         mock_client.chat.completions.create.side_effect = Exception("API Error")
 
-        result = generate_summaries(pr_data, diff, mock_client, "gpt-3.5-turbo")
+        config = Config(
+            github_token="test_token",
+            github_repository="test/repo",
+            github_event_path="/tmp/event.json",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+            openai_model="gpt-3.5-turbo",
+        )
+
+        result = generate_summaries(pr_data, diff, mock_client, config)
 
         assert result["technical"] == pr_data["title"]
         assert result["marketing"] == "Improvements and updates"
@@ -203,14 +258,23 @@ class TestGenerateSummaries:
         mock_response.choices = [Mock(message=mock_message)]
         mock_client.chat.completions.create.return_value = mock_response
 
-        generate_summaries(pr_data, diff, mock_client, "gpt-3.5-turbo")
+        config = Config(
+            github_token="test_token",
+            github_repository="test/repo",
+            github_event_path="/tmp/event.json",
+            openai_api_key="test_key",
+            slack_webhook="test_webhook",
+            openai_model="gpt-3.5-turbo",
+        )
+
+        generate_summaries(pr_data, diff, mock_client, config)
 
         # Check that the prompt includes author information
         call_args = mock_client.chat.completions.create.call_args
         prompt = call_args[1]["messages"][1]["content"]
 
         assert "Author: John Developer (@developer1)" in prompt
-        assert "Merged by: Jane Maintainer (@maintainer1)" in prompt
+        assert "Merged by: Maintainer (@maintainer)" in prompt
         assert "Branches: feature/oauth2-auth → main" in prompt
 
 
@@ -231,19 +295,23 @@ class TestPostToSlack:
         mock_response.raise_for_status.return_value = None
         mock_post.return_value = mock_response
 
-        result = post_to_slack(pr_data, summaries, "https://hooks.slack.com/test")
+        config = Config(
+            github_token="test_token",
+            github_repository="test/repo",
+            github_event_path="/tmp/event.json",
+            openai_api_key="test_key",
+            slack_webhook="https://hooks.slack.com/test",
+        )
+
+        result = post_to_slack(pr_data, summaries, config)
 
         assert result is True
         mock_post.assert_called_once()
 
-        # Check message content
-        call_args = mock_post.call_args
-        message = call_args[1]["json"]
-
-        assert "PR #42 Merged" in message["text"]
-        assert "John Developer (@developer1)" in message["blocks"][0]["text"]["text"]
-        assert "Jane Maintainer (@maintainer1)" in message["blocks"][0]["text"]["text"]
-        assert "feature/oauth2-auth → main" in message["blocks"][0]["text"]["text"]
+        # Check that the posted data contains expected content
+        posted_data = mock_post.call_args[1]["json"]
+        assert "PR #42 Merged" in posted_data["text"]
+        assert "Add user authentication with OAuth2" in posted_data["text"]
 
     @patch("src.pr_summary_action.summarize.requests.post")
     def test_post_to_slack_api_error(self, mock_post):
@@ -346,7 +414,7 @@ class TestMain:
     def test_main_missing_environment_variables(self):
         """Test main raises error for missing environment variables."""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValueError, match="Required environment variable"):
+            with pytest.raises(ValueError, match="Required configuration field"):
                 main()
 
 

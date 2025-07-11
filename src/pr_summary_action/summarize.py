@@ -55,7 +55,7 @@ def load_pr_data(config: Config) -> Dict[str, Any]:
                     f"PR Labels: {[label.get('name') for label in pr.get('labels', [])]}"
                 )
                 logger.info(
-                    f"PR Milestone: {pr.get('milestone', {}).get('title', 'None')}"
+                    f"PR Milestone: {(pr.get('milestone') or {}).get('title', 'None')}"
                 )
                 logger.info(
                     f"PR Assignees: {[assignee.get('login') for assignee in pr.get('assignees', [])]}"
