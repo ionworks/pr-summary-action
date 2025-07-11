@@ -8,7 +8,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: ionworks/pr-summary-action@test-realistic-feature
+      - uses: ionworks/pr-summary-action@main
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           slack_webhook: ${{ secrets.SLACK_WEBHOOK }}

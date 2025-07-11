@@ -10,15 +10,8 @@ from .config import Config
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Force root logger level to ensure all logging is visible
-logging.getLogger().setLevel(logging.DEBUG)
-logger.setLevel(logging.DEBUG)
-
-# Also create a main logger for consistency
-main_logger = logging.getLogger("__main__")
 
 
 def load_pr_data(config: Config) -> Dict[str, Any]:
@@ -152,45 +145,22 @@ Analyze this pull request and create two summaries:
 
 PR DETAILS:
 Title: {pr["title"]}
-Author: {author_display} (@{author_login})
-Merged by: {merged_by_display} (@{merged_by_login})
-Branches: {head_branch} → {base_branch}
 Description: {pr.get("body", "")}
 Diff (first {config.max_diff_length} chars): {diff_excerpt}
 
 INSTRUCTIONS:
 - Create a "technical" summary (2-3 sentences describing what changed technically)
-- Create a "marketing" summary (1-2 sentences describing user benefits)
-- You may mention the author in the summaries if relevant
+- Create a "marketing" summary (1-2 sentences describing user benefits, or "Minor technical improvements" for basic fixes)
+- Do not mention author names in the summaries
 - Respond with ONLY a valid JSON object, no other text
 - Use this exact format: {{"technical": "your technical summary", "marketing": "your marketing summary"}}
 
 JSON Response:"""
 
     try:
-        # Always log key request details for debugging
-        print(f"=== DEBUG: Making OpenAI API call with model: {config.openai_model}")
-        print(f"=== DEBUG: Prompt length: {len(prompt)} characters")
-        print(
-            f"=== DEBUG: Diff length: {len(diff)} characters (truncated to {config.max_diff_length})"
-        )
-
-        logger.info(f"Making OpenAI API call with model: {config.openai_model}")
-        logger.info(f"Prompt length: {len(prompt)} characters")
         logger.info(
-            f"Diff length: {len(diff)} characters (truncated to {config.max_diff_length})"
+            f"Generating summaries for PR #{pr['number']} using {config.openai_model}"
         )
-
-        # Log the API call parameters
-        api_params = {
-            "model": config.openai_model,
-            "max_tokens": config.max_tokens,
-            "temperature": config.temperature,
-            "messages_count": 2,
-            "user_message_length": len(prompt),
-        }
-        print(f"=== DEBUG: OpenAI API parameters: {api_params}")
-        logger.info(f"OpenAI API parameters: {api_params}")
 
         response = openai_client.chat.completions.create(
             model=config.openai_model,
@@ -205,109 +175,32 @@ JSON Response:"""
             temperature=config.temperature,
         )
 
-        # Always log API response details for debugging
-        print(f"=== DEBUG: OpenAI API call successful")
-        print(f"=== DEBUG: Response object type: {type(response)}")
-        print(f"=== DEBUG: Response has choices: {hasattr(response, 'choices')}")
-
-        logger.info(f"OpenAI API call successful")
-        logger.info(f"Response object type: {type(response)}")
-        logger.info(f"Response has choices: {hasattr(response, 'choices')}")
-
         if not hasattr(response, "choices") or not response.choices:
-            print(f"=== DEBUG: OpenAI response has no choices")
-            logger.error("OpenAI response has no choices")
             raise ValueError("OpenAI response has no choices")
 
-        print(f"=== DEBUG: Number of choices: {len(response.choices)}")
-        logger.info(f"Number of choices: {len(response.choices)}")
-
-        # Log additional response metadata if available
-        if hasattr(response, "usage"):
-            print(f"=== DEBUG: Token usage: {response.usage}")
-            logger.info(f"Token usage: {response.usage}")
-        if hasattr(response, "id"):
-            print(f"=== DEBUG: Response ID: {response.id}")
-            logger.info(f"Response ID: {response.id}")
-
         first_choice = response.choices[0]
-        print(f"=== DEBUG: First choice type: {type(first_choice)}")
-        print(
-            f"=== DEBUG: First choice has message: {hasattr(first_choice, 'message')}"
-        )
-
-        logger.info(f"First choice type: {type(first_choice)}")
-        logger.info(f"First choice has message: {hasattr(first_choice, 'message')}")
-
-        # Log finish reason to understand why the response ended
-        if hasattr(first_choice, "finish_reason"):
-            print(f"=== DEBUG: Finish reason: {first_choice.finish_reason}")
-            logger.info(f"Finish reason: {first_choice.finish_reason}")
-        else:
-            print(f"=== DEBUG: No finish reason available in response")
-            logger.warning("No finish reason available in response")
 
         if not hasattr(first_choice, "message"):
             raise ValueError("OpenAI response choice has no message")
 
         message = first_choice.message
-        logger.info(f"Message type: {type(message)}")
-        logger.info(f"Message has content: {hasattr(message, 'content')}")
-
-        # Log message role for completeness
-        if hasattr(message, "role"):
-            logger.info(f"Message role: {message.role}")
-        else:
-            logger.warning("No role available in message")
-
         response_content = message.content
-        # Always log the raw response content for debugging
-        print(f"=== DEBUG: Raw OpenAI response content: {repr(response_content)}")
-        print(f"=== DEBUG: Response content type: {type(response_content)}")
-        print(
-            f"=== DEBUG: Response content length: {len(response_content) if response_content else 0}"
-        )
-
-        logger.info(f"Raw OpenAI response content: {repr(response_content)}")
-        logger.info(f"Response content type: {type(response_content)}")
-        logger.info(
-            f"Response content length: {len(response_content) if response_content else 0}"
-        )
 
         if not response_content:
-            print(f"=== DEBUG: OpenAI returned empty response content")
-            logger.error("OpenAI returned empty response content")
             raise ValueError("Empty response content from OpenAI")
 
         response_content = response_content.strip()
-        print(f"=== DEBUG: Stripped response content: {repr(response_content)}")
-        logger.info(f"Stripped response content: {repr(response_content)}")
 
         # Try to extract JSON if there's extra text
         if not response_content.startswith("{"):
-            print(
-                f"=== DEBUG: Response doesn't start with '{{', trying to extract JSON"
-            )
-            logger.warning("Response doesn't start with '{', trying to extract JSON")
             # Find the first { and last }
             start = response_content.find("{")
             end = response_content.rfind("}") + 1
             if start != -1 and end != 0:
                 response_content = response_content[start:end]
-                print(f"=== DEBUG: Extracted JSON: {repr(response_content)}")
-                logger.info(f"Extracted JSON: {repr(response_content)}")
             else:
-                print(f"=== DEBUG: Could not find JSON boundaries in response")
-                print(
-                    f"=== DEBUG: Full response for analysis: {repr(response_content[:500])}"
-                )
                 logger.error("Could not find JSON boundaries in response")
-                logger.error(
-                    f"Full response for analysis: {repr(response_content[:500])}"
-                )
 
-        print(f"=== DEBUG: About to parse JSON: {repr(response_content[:200])}")
-        logger.info(f"About to parse JSON: {repr(response_content[:200])}")
         summaries = json.loads(response_content)
 
         # Validate that we have the required keys
@@ -411,21 +304,9 @@ def post_to_slack(
 def main() -> None:
     """Main entry point for PR summarization."""
     try:
-        # Ensure logging is properly configured
-        print("=== DEBUG: Starting PR Summary Action ===")
-        print(f"Logger name: {logger.name}")
-        print(f"Logger level: {logger.level}")
-        print(f"Root logger level: {logging.getLogger().level}")
-        print("=== DEBUG: Logger setup complete ===")
-
         # Load and validate configuration
         config = Config.from_env()
         config.validate()
-
-        print("=== DEBUG: Configuration loaded ===")
-        logger.info("Configuration loaded successfully")
-        if config.enable_debugging:
-            logger.info(f"Configuration: {config.to_dict()}")
 
         # Load PR data
         event = load_pr_data(config)
