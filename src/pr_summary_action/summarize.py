@@ -256,26 +256,28 @@ def post_to_slack(
     merged_by_name = merged_by_info.get("name", "")
     merged_by_display = merged_by_name if merged_by_name else merged_by_login
 
-    # Get branch information
+    # Get branch and repository information
     base_branch = pr.get("base", {}).get("ref", "main")
     head_branch = pr.get("head", {}).get("ref", "feature")
+    repo_name = pr.get("base", {}).get("repo", {}).get("name", "unknown")
+    repo_full_name = pr.get("base", {}).get("repo", {}).get("full_name", "unknown")
 
     # Build the Slack message with improved formatting
     slack_msg = {
-        "text": f"🚀 PR #{pr['number']} Merged: {pr['title']}",
+        "text": f"🚀 PR #{pr['number']} Merged: {pr['title']} ({repo_name})",
         "blocks": [
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": f"🚀 PR #{pr['number']} Merged",
+                    "text": f"🚀 PR #{pr['number']} Merged in {repo_name}",
                 },
             },
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*{pr['title']}*\n\n👤 *Author:* {author_display} (@{author_login})\n🔀 *Merged by:* {merged_by_display} (@{merged_by_login})\n🌿 *Branches:* `{head_branch}` → `{base_branch}`",
+                    "text": f"*{pr['title']}*\n\n📁 *Repository:* `{repo_full_name}`\n👤 *Author:* {author_display} (@{author_login})\n🔀 *Merged by:* {merged_by_display} (@{merged_by_login})\n🌿 *Branches:* `{head_branch}` → `{base_branch}`",
                 },
             },
             {"type": "divider"},
