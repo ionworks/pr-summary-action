@@ -125,11 +125,11 @@ class TestCredentials:
         # Test OpenAI summary generation
         prompt = f"""
         Analyze this PR and create summaries:
-        
+
         Title: {mock_pr_data["title"]}
         Description: {mock_pr_data["body"]}
         Diff: Added login/logout functionality with proper session management
-        
+
         Return JSON:
         {{"technical": "2-3 sentence technical summary", "marketing": "1-2 sentence user benefit"}}
         """

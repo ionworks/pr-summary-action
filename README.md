@@ -114,10 +114,10 @@ The action uses **GitHub secrets** passed as inputs for secure credential storag
 
 ## Why Use Inputs Instead of Direct Secret Access?
 
-✅ **Explicit**: Clear what secrets the action needs  
-✅ **Flexible**: Repositories can use different secret names  
-✅ **Reusable**: Works across different organizations  
-✅ **Secure**: Follows GitHub Actions best practices  
+✅ **Explicit**: Clear what secrets the action needs
+✅ **Flexible**: Repositories can use different secret names
+✅ **Reusable**: Works across different organizations
+✅ **Secure**: Follows GitHub Actions best practices
 ✅ **Transparent**: Workflow files show exactly what's being passed
 
 ## Pro Tips

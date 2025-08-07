@@ -139,7 +139,7 @@ def generate_summaries(
     # Truncate diff to configured length
     diff_excerpt = diff[: config.max_diff_length]
 
-    prompt = f"""You are a technical writer creating PR summaries. 
+    prompt = f"""You are a technical writer creating PR summaries.
 
 Analyze this pull request and create two summaries:
 
