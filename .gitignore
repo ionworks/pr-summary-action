@@ -74,3 +74,5 @@ Thumbs.db
 # Project specific
 .env.local
 .env.production
+
+evaluation_results/

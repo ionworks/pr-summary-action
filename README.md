@@ -127,6 +127,31 @@ The action uses **GitHub secrets** passed as inputs for secure credential storag
 - Add repo-specific logic in `summarize.py` using `os.environ['GITHUB_REPOSITORY']`
 - Monitor your OpenAI API usage to manage costs
 
+## Evaluation System
+
+Want to improve your PR summaries? The evaluation system helps you test and optimize prompts systematically.
+
+### Quick Start
+
+```bash
+cd evals
+python examples/run_evaluation_example.py
+```
+
+### Features
+
+- 🧪 **Test multiple prompt variations** - 8 built-in variations from concise to detailed
+- 📊 **Automated metrics** - Readability, keyword coverage, factual consistency
+- 👥 **Human evaluation** - Interactive HTML forms for subjective assessment
+- 📈 **Comprehensive reports** - Compare performance across prompt versions
+- 🔄 **Iterative improvement** - Data-driven prompt optimization
+
+### Documentation
+
+- **[Full Documentation](evals/README.md)** - Complete guide to the evaluation system
+- **[Quick Start](evals/QUICKSTART.md)** - Get started in minutes
+- **[Example Usage](evals/examples/)** - Working examples and demos
+
 ## Requirements
 
 - GitHub repository with configured secrets
